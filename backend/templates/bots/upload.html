@@ -3,51 +3,408 @@
 {% block title %}Upload Code - {{ bot.name }}{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <h1>Upload Code for {{ bot.name }}</h1>
-    <a href="/bots/{{ bot.id }}" class="btn btn-secondary">← Back to Bot</a>
-</div>
+<style>
+    .upload-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
 
-<div class="card">
-    <h2>📦 Upload ZIP File</h2>
-    <p style="color: #666; margin-bottom: 1.5rem;">
-        Upload a ZIP file containing your bot's source code. The ZIP should include all necessary files including bot.py and requirements.txt (if needed).
-    </p>
+    .upload-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
 
-    <form method="post" action="/bots/{{ bot.id }}/upload" enctype="multipart/form-data">
-        <div class="form-group">
-            <label for="file">Select ZIP File *</label>
-            <input type="file" id="file" name="file" accept=".zip" required>
+    .upload-header h1 {
+        margin-bottom: 0.5rem;
+    }
+
+    .upload-header p {
+        color: var(--gray);
+        font-size: 1.1rem;
+    }
+
+    .upload-card {
+        background: var(--white);
+        border-radius: 24px;
+        padding: 3rem;
+        box-shadow: var(--shadow-xl);
+        margin-bottom: 2rem;
+    }
+
+    .upload-zone {
+        border: 3px dashed var(--gray-light);
+        border-radius: 20px;
+        padding: 4rem 2rem;
+        text-align: center;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+        transition: all 0.3s ease;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .upload-zone::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: repeating-linear-gradient(
+            45deg,
+            transparent,
+            transparent 10px,
+            rgba(99, 102, 241, 0.03) 10px,
+            rgba(99, 102, 241, 0.03) 20px
+        );
+        animation: slide 20s linear infinite;
+    }
+
+    @keyframes slide {
+        0% {
+            transform: translate(0, 0);
+        }
+        100% {
+            transform: translate(50%, 50%);
+        }
+    }
+
+    .upload-zone:hover {
+        border-color: var(--primary);
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+        transform: scale(1.02);
+    }
+
+    .upload-icon {
+        font-size: 5rem;
+        margin-bottom: 1.5rem;
+        position: relative;
+        z-index: 1;
+        animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+        0%, 100% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(-20px);
+        }
+    }
+
+    .upload-text {
+        position: relative;
+        z-index: 1;
+    }
+
+    .upload-text h3 {
+        font-size: 1.5rem;
+        margin-bottom: 0.75rem;
+        color: var(--dark);
+    }
+
+    .upload-text p {
+        color: var(--gray);
+        margin-bottom: 1.5rem;
+        font-size: 1.05rem;
+    }
+
+    .file-input-wrapper {
+        position: relative;
+        display: inline-block;
+    }
+
+    .file-input-wrapper input[type="file"] {
+        position: absolute;
+        opacity: 0;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        cursor: pointer;
+    }
+
+    .file-input-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem 2rem;
+        background: var(--gradient-primary);
+        color: white;
+        border-radius: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: var(--shadow);
+    }
+
+    .file-input-label:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-xl);
+    }
+
+    .selected-file {
+        margin-top: 1.5rem;
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+        border-radius: 12px;
+        display: none;
+        align-items: center;
+        gap: 1rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .selected-file.show {
+        display: flex;
+    }
+
+    .selected-file-icon {
+        font-size: 2rem;
+    }
+
+    .selected-file-info {
+        flex: 1;
+    }
+
+    .selected-file-name {
+        font-weight: 700;
+        color: var(--success-dark);
+        margin-bottom: 0.25rem;
+    }
+
+    .selected-file-size {
+        font-size: 0.9rem;
+        color: var(--success);
+    }
+
+    .process-card {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+        border-left: 4px solid var(--primary);
+        border-radius: 16px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .process-card h3 {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+        font-size: 1.25rem;
+    }
+
+    .process-steps {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .process-step {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        background: var(--white);
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+    }
+
+    .step-number {
+        width: 40px;
+        height: 40px;
+        background: var(--gradient-primary);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 1.1rem;
+    }
+
+    .step-text {
+        flex: 1;
+        font-weight: 500;
+        color: var(--dark);
+    }
+
+    .requirements-card {
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.1) 100%);
+        border-left: 4px solid var(--warning);
+        border-radius: 16px;
+        padding: 2rem;
+    }
+
+    .requirements-card h3 {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        color: var(--warning-dark);
+        margin-bottom: 1.5rem;
+        font-size: 1.25rem;
+    }
+
+    .requirements-list {
+        margin-left: 1.5rem;
+        line-height: 2;
+    }
+
+    .requirements-list li {
+        color: var(--dark-light);
+        margin-bottom: 0.5rem;
+    }
+
+    .requirements-list strong {
+        color: var(--dark);
+    }
+
+    @media (max-width: 768px) {
+        .upload-card {
+            padding: 2rem;
+        }
+
+        .upload-zone {
+            padding: 3rem 1.5rem;
+        }
+
+        .upload-icon {
+            font-size: 4rem;
+        }
+    }
+</style>
+
+<div class="upload-container">
+    <div class="upload-header">
+        <h1>📦 Upload Bot Code</h1>
+        <p>Upload your bot code as a ZIP file for <strong>{{ bot.name }}</strong></p>
+    </div>
+
+    <div class="upload-card">
+        <form method="post" action="/bots/{{ bot.id }}/upload" enctype="multipart/form-data" id="uploadForm">
+            <div class="upload-zone" id="uploadZone">
+                <div class="upload-icon">📁</div>
+                <div class="upload-text">
+                    <h3>Drop your ZIP file here</h3>
+                    <p>or click the button below to browse</p>
+                    <div class="file-input-wrapper">
+                        <label for="file" class="file-input-label">
+                            <span>🔍</span>
+                            <span>Choose ZIP File</span>
+                        </label>
+                        <input type="file" id="file" name="file" accept=".zip" required>
+                    </div>
+                </div>
+
+                <div class="selected-file" id="selectedFile">
+                    <div class="selected-file-icon">✅</div>
+                    <div class="selected-file-info">
+                        <div class="selected-file-name" id="fileName"></div>
+                        <div class="selected-file-size" id="fileSize"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button type="submit" class="btn btn-success">🚀 Upload & Deploy</button>
+                <a href="/bots/{{ bot.id }}" class="btn btn-secondary">❌ Cancel</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="process-card">
+        <h3>
+            <span>⚙️</span>
+            <span>What Happens After Upload?</span>
+        </h3>
+        <div class="process-steps">
+            <div class="process-step">
+                <div class="step-number">1</div>
+                <div class="step-text">Your ZIP file will be extracted to <code>{{ bot.code_path }}</code></div>
+            </div>
+            <div class="process-step">
+                <div class="step-number">2</div>
+                <div class="step-text">A Docker image will be built automatically for your bot</div>
+            </div>
+            <div class="process-step">
+                <div class="step-number">3</div>
+                <div class="step-text">The bot container will be restarted with the new code</div>
+            </div>
+            <div class="process-step">
+                <div class="step-number">4</div>
+                <div class="step-text">Check deployment status and logs on the bot detail page</div>
+            </div>
         </div>
+    </div>
 
-        <div class="button-group">
-            <button type="submit" class="btn btn-success">Upload & Deploy</button>
-            <a href="/bots/{{ bot.id }}" class="btn btn-secondary">Cancel</a>
+    <div class="card">
+        <div class="requirements-card">
+            <h3>
+                <span>📋</span>
+                <span>Code Requirements</span>
+            </h3>
+            <ul class="requirements-list">
+                <li><strong>bot.py</strong> - Your main bot script (or the file specified in start_command)</li>
+                <li><strong>requirements.txt</strong> - Python dependencies (optional, but recommended)</li>
+                <li>Any additional files your bot needs (config files, assets, etc.)</li>
+                <li>The ZIP should extract directly to your bot code, not nested in a folder</li>
+            </ul>
+            <p style="margin-top: 1.5rem; padding: 1rem; background: var(--white); border-radius: 8px; color: var(--warning-dark);">
+                <strong>⚠️ Important:</strong> The existing code will be completely replaced with the contents of your ZIP file.
+            </p>
         </div>
-    </form>
+    </div>
 </div>
 
-<div class="card" style="background-color: #f8f9fa;">
-    <h3>ℹ️ What happens after upload?</h3>
-    <ol style="margin-left: 1.5rem; line-height: 1.8;">
-        <li>Your ZIP file will be extracted to: <code>{{ bot.code_path }}</code></li>
-        <li>A Docker image will be built for your bot</li>
-        <li>The bot container will be restarted with the new code</li>
-        <li>You can check deployment status on the bot detail page</li>
-    </ol>
-</div>
+<script>
+    const fileInput = document.getElementById('file');
+    const selectedFile = document.getElementById('selectedFile');
+    const fileName = document.getElementById('fileName');
+    const fileSize = document.getElementById('fileSize');
+    const uploadZone = document.getElementById('uploadZone');
 
-<div class="card" style="background-color: #fff3cd; border: 1px solid #ffc107;">
-    <h3>⚠️ Requirements</h3>
-    <p style="margin-bottom: 0.5rem;">Your ZIP file should contain:</p>
-    <ul style="margin-left: 1.5rem; line-height: 1.8;">
-        <li><strong>bot.py</strong> - Your main bot script (or the file specified in start_command)</li>
-        <li><strong>requirements.txt</strong> - Python dependencies (optional, but recommended)</li>
-        <li>Any other files your bot needs</li>
-    </ul>
-    <p style="margin-top: 1rem; color: #856404;">
-        <strong>Note:</strong> The existing code will be completely replaced with the contents of your ZIP file.
-    </p>
-</div>
+    fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            fileName.textContent = file.name;
+            fileSize.textContent = formatFileSize(file.size);
+            selectedFile.classList.add('show');
+        }
+    });
+
+    // Drag and drop functionality
+    uploadZone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        uploadZone.style.borderColor = 'var(--primary)';
+        uploadZone.style.background = 'linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%)';
+    });
+
+    uploadZone.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        uploadZone.style.borderColor = '';
+        uploadZone.style.background = '';
+    });
+
+    uploadZone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        uploadZone.style.borderColor = '';
+        uploadZone.style.background = '';
+
+        const file = e.dataTransfer.files[0];
+        if (file && file.name.endsWith('.zip')) {
+            fileInput.files = e.dataTransfer.files;
+            fileName.textContent = file.name;
+            fileSize.textContent = formatFileSize(file.size);
+            selectedFile.classList.add('show');
+        }
+    });
+
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+    }
+</script>
 
 {% endblock %}

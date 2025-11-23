@@ -1,60 +1,367 @@
 {% extends "base.html" %}
 
-{% block title %}Bots - Multi-Bot Platform{% endblock %}
+{% block title %}Dashboard - Multi-Bot Platform{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <h1>My Bots</h1>
-    <a href="/bots/new" class="btn btn-success">+ Create New Bot</a>
+<style>
+    .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 3rem;
+    }
+
+    .dashboard-title-section h1 {
+        margin-bottom: 0.5rem;
+    }
+
+    .dashboard-subtitle {
+        color: var(--gray);
+        font-size: 1.1rem;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: var(--white);
+        border-radius: 20px;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .empty-state-icon {
+        font-size: 5rem;
+        margin-bottom: 1.5rem;
+        opacity: 0.5;
+    }
+
+    .empty-state h2 {
+        color: var(--dark);
+        margin-bottom: 1rem;
+    }
+
+    .empty-state p {
+        color: var(--gray);
+        margin-bottom: 2rem;
+        font-size: 1.1rem;
+    }
+
+    .bots-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+
+    .bot-card {
+        background: var(--white);
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: var(--shadow-lg);
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .bot-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--gradient-primary);
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
+    }
+
+    .bot-card:hover::before {
+        transform: scaleX(1);
+    }
+
+    .bot-card:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--shadow-xl);
+        border-color: rgba(99, 102, 241, 0.2);
+    }
+
+    .bot-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1.5rem;
+    }
+
+    .bot-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .bot-name {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--dark);
+        margin-bottom: 0.5rem;
+    }
+
+    .bot-runtime {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.35rem 0.75rem;
+        background: rgba(99, 102, 241, 0.1);
+        color: var(--primary);
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .bot-stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin: 1.5rem 0;
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        border-radius: 12px;
+    }
+
+    .bot-stat {
+        text-align: center;
+    }
+
+    .bot-stat-label {
+        font-size: 0.8rem;
+        color: var(--gray);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+    }
+
+    .bot-stat-value {
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: var(--dark);
+        margin-top: 0.25rem;
+    }
+
+    .deployment-status {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem;
+        background: white;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+    }
+
+    .deployment-icon {
+        font-size: 1.5rem;
+    }
+
+    .deployment-info {
+        flex: 1;
+    }
+
+    .deployment-label {
+        font-size: 0.75rem;
+        color: var(--gray);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+
+    .deployment-value {
+        font-weight: 700;
+    }
+
+    .deployment-success {
+        color: var(--success);
+    }
+
+    .deployment-failed {
+        color: var(--danger);
+    }
+
+    .deployment-never {
+        color: var(--gray);
+    }
+
+    .bot-card-footer {
+        display: flex;
+        gap: 0.75rem;
+        margin-top: 1.5rem;
+    }
+
+    .stats-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+    }
+
+    .stats-card {
+        background: var(--white);
+        padding: 1.5rem;
+        border-radius: 16px;
+        box-shadow: var(--shadow);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .stats-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .stats-icon {
+        font-size: 2.5rem;
+    }
+
+    .stats-content h3 {
+        font-size: 2rem;
+        font-weight: 800;
+        margin-bottom: 0.25rem;
+        background: var(--gradient-primary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .stats-content p {
+        color: var(--gray);
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    @media (max-width: 768px) {
+        .bots-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .dashboard-header {
+            flex-direction: column;
+            gap: 1.5rem;
+            align-items: flex-start;
+        }
+    }
+</style>
+
+<div class="dashboard-header">
+    <div class="dashboard-title-section">
+        <h1>🤖 Bot Dashboard</h1>
+        <p class="dashboard-subtitle">Manage and monitor all your bots</p>
+    </div>
+    <a href="/bots/new" class="btn btn-success">✨ Create New Bot</a>
 </div>
 
 {% if bots_data %}
-<div class="card">
-    <table>
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Runtime</th>
-                <th>Status</th>
-                <th>Last Deployment</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in bots_data %}
-            <tr>
-                <td><strong>{{ item.bot.name }}</strong></td>
-                <td>{{ item.bot.runtime }}</td>
-                <td>
-                    {% if 'Running' in item.status %}
-                    <span class="status-badge status-running">{{ item.status }}</span>
+    <div class="stats-cards">
+        <div class="stats-card">
+            <div class="stats-icon">📊</div>
+            <div class="stats-content">
+                <h3>{{ bots_data|length }}</h3>
+                <p>Total Bots</p>
+            </div>
+        </div>
+        <div class="stats-card">
+            <div class="stats-icon">🟢</div>
+            <div class="stats-content">
+                <h3>{{ bots_data|selectattr('status', 'search', 'Running')|list|length }}</h3>
+                <p>Running</p>
+            </div>
+        </div>
+        <div class="stats-card">
+            <div class="stats-icon">🔴</div>
+            <div class="stats-content">
+                <h3>{{ bots_data|rejectattr('status', 'search', 'Running')|list|length }}</h3>
+                <p>Stopped</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="bots-grid">
+        {% for item in bots_data %}
+        <div class="bot-card">
+            <div class="bot-card-header">
+                <div>
+                    <div class="bot-icon">🤖</div>
+                    <h3 class="bot-name">{{ item.bot.name }}</h3>
+                    <span class="bot-runtime">🐍 {{ item.bot.runtime }}</span>
+                </div>
+                {% if 'Running' in item.status %}
+                <span class="status-badge status-running">{{ item.status }}</span>
+                {% else %}
+                <span class="status-badge status-stopped">{{ item.status }}</span>
+                {% endif %}
+            </div>
+
+            <div class="bot-stats">
+                <div class="bot-stat">
+                    <div class="bot-stat-label">Runtime</div>
+                    <div class="bot-stat-value">{{ item.bot.runtime }}</div>
+                </div>
+                <div class="bot-stat">
+                    <div class="bot-stat-label">Created</div>
+                    <div class="bot-stat-value">{{ item.bot.created_at.strftime('%m/%d') }}</div>
+                </div>
+            </div>
+
+            <div class="deployment-status">
+                {% if item.last_deployment %}
+                    {% if item.last_deployment.status == 'success' %}
+                        <div class="deployment-icon">✅</div>
+                        <div class="deployment-info">
+                            <div class="deployment-label">Last Deployment</div>
+                            <div class="deployment-value deployment-success">
+                                Success - {{ item.last_deployment.created_at.strftime('%Y-%m-%d %H:%M') }}
+                            </div>
+                        </div>
+                    {% elif item.last_deployment.status == 'failed' %}
+                        <div class="deployment-icon">❌</div>
+                        <div class="deployment-info">
+                            <div class="deployment-label">Last Deployment</div>
+                            <div class="deployment-value deployment-failed">
+                                Failed - {{ item.last_deployment.created_at.strftime('%Y-%m-%d %H:%M') }}
+                            </div>
+                        </div>
                     {% else %}
-                    <span class="status-badge status-stopped">{{ item.status }}</span>
+                        <div class="deployment-icon">⏳</div>
+                        <div class="deployment-info">
+                            <div class="deployment-label">Last Deployment</div>
+                            <div class="deployment-value deployment-never">
+                                Pending - {{ item.last_deployment.created_at.strftime('%Y-%m-%d %H:%M') }}
+                            </div>
+                        </div>
                     {% endif %}
-                </td>
-                <td>
-                    {% if item.last_deployment %}
-                    <span style="{% if item.last_deployment.status == 'success' %}color: #27ae60{% elif item.last_deployment.status == 'failed' %}color: #e74c3c{% else %}color: #95a5a6{% endif %}">
-                        {{ item.last_deployment.status }}
-                    </span> - {{ item.last_deployment.created_at.strftime('%Y-%m-%d %H:%M') }}
-                    {% else %}
-                    <span style="color: #95a5a6;">Never deployed</span>
-                    {% endif %}
-                </td>
-                <td>
-                    <a href="/bots/{{ item.bot.id }}" class="btn btn-small">View Details</a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+                {% else %}
+                    <div class="deployment-icon">📦</div>
+                    <div class="deployment-info">
+                        <div class="deployment-label">Last Deployment</div>
+                        <div class="deployment-value deployment-never">Never deployed</div>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="bot-card-footer">
+                <a href="/bots/{{ item.bot.id }}" class="btn btn-small" style="flex: 1;">⚙️ Manage</a>
+                <a href="/bots/{{ item.bot.id }}/logs" class="btn btn-secondary btn-small">📋 Logs</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
 {% else %}
-<div class="card">
-    <p style="text-align: center; color: #666; padding: 2rem 0;">
-        No bots yet. Create your first bot to get started!
-    </p>
-</div>
+    <div class="empty-state">
+        <div class="empty-state-icon">🤖</div>
+        <h2>No Bots Yet</h2>
+        <p>Create your first bot to start managing your Telegram bots!</p>
+        <a href="/bots/new" class="btn btn-success">✨ Create Your First Bot</a>
+    </div>
 {% endif %}
 
 {% endblock %}
