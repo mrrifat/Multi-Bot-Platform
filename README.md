@@ -34,7 +34,7 @@ This platform allows you to:
 1. **Clone this repository**:
    ```bash
    git clone https://github.com/mrrifat/Multi-Bot-Platform.git
-   cd VPS-Manager
+   cd Multi-Bot-Platform
    ```
 
 2. **Set up the environment** (Optional but recommended):
