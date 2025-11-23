@@ -46,3 +46,4 @@ temp/
 
 # Bot code directories (these are managed by the platform)
 /srv/bots/
+bots-data/

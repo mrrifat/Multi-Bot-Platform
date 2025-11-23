@@ -3,59 +3,238 @@
 {% block title %}Create New Bot - Multi-Bot Platform{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <h1>Create New Bot</h1>
-    <a href="/bots" class="btn btn-secondary">← Back to Bots</a>
-</div>
+<style>
+    .create-bot-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
 
-{% if error %}
-<div class="alert alert-error">{{ error }}</div>
-{% endif %}
+    .page-header-custom {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
 
-<div class="card">
-    <form method="post" action="/bots">
-        <div class="form-group">
-            <label for="name">Bot Name *</label>
-            <input type="text" id="name" name="name" required placeholder="my-telegram-bot">
-            <small style="color: #666;">Use lowercase letters, numbers, and hyphens only</small>
+    .page-header-custom h1 {
+        margin-bottom: 1rem;
+    }
+
+    .page-header-custom p {
+        color: var(--gray);
+        font-size: 1.1rem;
+    }
+
+    .form-card {
+        background: var(--white);
+        border-radius: 20px;
+        padding: 3rem;
+        box-shadow: var(--shadow-xl);
+        margin-bottom: 2rem;
+    }
+
+    .form-section {
+        margin-bottom: 2.5rem;
+    }
+
+    .form-section-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--dark);
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid var(--gray-light);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .info-card {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+        border-left: 4px solid var(--primary);
+        border-radius: 12px;
+        padding: 1.5rem;
+    }
+
+    .info-card h3 {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
+    }
+
+    .info-list {
+        margin-left: 1.5rem;
+        line-height: 2;
+    }
+
+    .info-list li {
+        color: var(--dark-light);
+    }
+
+    .warning-card {
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.1) 100%);
+        border-left: 4px solid var(--warning);
+        border-radius: 12px;
+        padding: 1.5rem;
+    }
+
+    .warning-card h3 {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--warning-dark);
+        font-size: 1.1rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .warning-card p {
+        color: var(--dark-light);
+        line-height: 1.8;
+    }
+
+    .deployment-options {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .deployment-option {
+        padding: 1.5rem;
+        border: 2px solid var(--gray-light);
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: center;
+    }
+
+    .deployment-option:hover {
+        border-color: var(--primary);
+        background: rgba(99, 102, 241, 0.05);
+        transform: translateY(-2px);
+    }
+
+    .deployment-option input[type="radio"] {
+        display: none;
+    }
+
+    .deployment-option input[type="radio"]:checked + .option-content {
+        color: var(--primary);
+    }
+
+    .deployment-option input[type="radio"]:checked ~ .deployment-option {
+        border-color: var(--primary);
+        background: rgba(99, 102, 241, 0.1);
+    }
+
+    .option-icon {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .option-title {
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+    }
+
+    .option-description {
+        font-size: 0.85rem;
+        color: var(--gray);
+    }
+
+    @media (max-width: 768px) {
+        .form-card {
+            padding: 2rem;
+        }
+
+        .deployment-options {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="create-bot-container">
+    <div class="page-header-custom">
+        <h1>✨ Create New Bot</h1>
+        <p>Set up a new Telegram bot in minutes</p>
+    </div>
+
+    {% if error %}
+    <div class="alert alert-error">
+        <strong>⚠️ Error:</strong> {{ error }}
+    </div>
+    {% endif %}
+
+    <div class="form-card">
+        <form method="post" action="/bots">
+            <div class="form-section">
+                <div class="form-section-title">
+                    <span>🤖</span>
+                    <span>Bot Information</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="name">Bot Name *</label>
+                    <input type="text" id="name" name="name" required placeholder="my-awesome-bot" pattern="[a-z0-9-]+" title="Use lowercase letters, numbers, and hyphens only">
+                    <small>Use lowercase letters, numbers, and hyphens only (e.g., my-telegram-bot)</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="runtime">Runtime *</label>
+                    <select id="runtime" name="runtime" required>
+                        <option value="python" selected>🐍 Python 3.11</option>
+                    </select>
+                    <small>Currently only Python is supported (more runtimes coming soon)</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="start_command">Start Command *</label>
+                    <input type="text" id="start_command" name="start_command" value="python bot.py" required>
+                    <small>Command to run your bot (e.g., <code>python bot.py</code> or <code>python main.py</code>)</small>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="form-section-title">
+                    <span>📦</span>
+                    <span>Deployment Method</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="repo_url">Git Repository URL (Optional)</label>
+                    <input type="url" id="repo_url" name="repo_url" placeholder="https://github.com/username/bot-repo.git">
+                    <small>Provide a Git repository URL for automatic deployments, or leave empty to upload code manually via ZIP</small>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button type="submit" class="btn btn-success">🚀 Create Bot</button>
+                <a href="/bots" class="btn btn-secondary">❌ Cancel</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="info-card">
+        <h3>ℹ️ Next Steps After Creation</h3>
+        <ol class="info-list">
+            <li>Configure environment variables (BOT_TOKEN, etc.)</li>
+            <li>Deploy your bot code (via Git or ZIP upload)</li>
+            <li>Start the bot container</li>
+            <li>Monitor logs to ensure everything is working</li>
+        </ol>
+    </div>
+
+    <div class="card" style="margin-top: 2rem;">
+        <div class="warning-card">
+            <h3>💡 Bot Code Requirements</h3>
+            <p>
+                Your bot repository or ZIP should contain at minimum:
+                <strong>bot.py</strong> (or your specified start file) and optionally
+                <strong>requirements.txt</strong> for Python dependencies.
+                Make sure your bot uses polling mode (not webhooks) for this MVP.
+            </p>
         </div>
-
-        <div class="form-group">
-            <label for="runtime">Runtime *</label>
-            <select id="runtime" name="runtime" required>
-                <option value="python">Python</option>
-            </select>
-            <small style="color: #666;">Currently only Python is supported</small>
-        </div>
-
-        <div class="form-group">
-            <label for="start_command">Start Command *</label>
-            <input type="text" id="start_command" name="start_command" value="python bot.py" required>
-            <small style="color: #666;">Command to run your bot (e.g., python bot.py or python main.py)</small>
-        </div>
-
-        <div class="form-group">
-            <label for="repo_url">Git Repository URL (Optional)</label>
-            <input type="url" id="repo_url" name="repo_url" placeholder="https://github.com/username/bot-repo.git">
-            <small style="color: #666;">Leave empty if you plan to upload code manually via ZIP</small>
-        </div>
-
-        <div class="button-group">
-            <button type="submit" class="btn btn-success">Create Bot</button>
-            <a href="/bots" class="btn btn-secondary">Cancel</a>
-        </div>
-    </form>
-</div>
-
-<div class="card" style="background-color: #f8f9fa;">
-    <h3>ℹ️ Getting Started</h3>
-    <p style="margin-bottom: 0.5rem;">After creating your bot:</p>
-    <ol style="margin-left: 1.5rem; line-height: 1.8;">
-        <li>Configure environment variables (e.g., BOT_TOKEN)</li>
-        <li>Deploy your code (via Git or ZIP upload)</li>
-        <li>Start the bot container</li>
-        <li>Monitor logs to verify it's working</li>
-    </ol>
+    </div>
 </div>
 
 {% endblock %}

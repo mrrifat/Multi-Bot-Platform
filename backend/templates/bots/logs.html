@@ -3,29 +3,384 @@
 {% block title %}Logs - {{ bot.name }}{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <h1>Logs: {{ bot.name }}</h1>
-    <div class="button-group">
-        <a href="/bots/{{ bot.id }}/logs" class="btn btn-secondary">🔄 Refresh</a>
-        <a href="/bots/{{ bot.id }}" class="btn btn-secondary">← Back to Bot</a>
+<style>
+    .logs-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .logs-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .logs-title-section h1 {
+        margin-bottom: 0.5rem;
+    }
+
+    .logs-subtitle {
+        color: var(--gray);
+        font-size: 1rem;
+    }
+
+    .terminal-card {
+        background: #1e293b;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: var(--shadow-xl);
+        margin-bottom: 2rem;
+        animation: fadeIn 0.6s ease-out;
+    }
+
+    .terminal-header {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        padding: 1rem 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid #334155;
+    }
+
+    .terminal-controls {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+
+    .terminal-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .dot-red {
+        background: #ef4444;
+    }
+
+    .dot-yellow {
+        background: #f59e0b;
+    }
+
+    .dot-green {
+        background: #10b981;
+    }
+
+    .terminal-title {
+        color: #94a3b8;
+        font-size: 0.9rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .terminal-status {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        color: #64748b;
+        font-size: 0.85rem;
+    }
+
+    .status-indicator {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #10b981;
+        animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+        }
+        50% {
+            opacity: 0.7;
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0);
+        }
+    }
+
+    .terminal-body {
+        padding: 1.5rem;
+        min-height: 500px;
+        max-height: 700px;
+        overflow-y: auto;
+        font-family: 'Fira Code', 'Courier New', monospace;
+        font-size: 0.9rem;
+        line-height: 1.7;
+        color: #e2e8f0;
+        background: #1e293b;
+    }
+
+    .terminal-body::-webkit-scrollbar {
+        width: 12px;
+    }
+
+    .terminal-body::-webkit-scrollbar-track {
+        background: #0f172a;
+        border-radius: 0 0 16px 0;
+    }
+
+    .terminal-body::-webkit-scrollbar-thumb {
+        background: #334155;
+        border-radius: 6px;
+    }
+
+    .terminal-body::-webkit-scrollbar-thumb:hover {
+        background: #475569;
+    }
+
+    .log-line {
+        padding: 0.25rem 0;
+        border-left: 3px solid transparent;
+        padding-left: 1rem;
+        margin-left: -1rem;
+        transition: all 0.2s ease;
+    }
+
+    .log-line:hover {
+        background: rgba(99, 102, 241, 0.1);
+        border-left-color: var(--primary);
+    }
+
+    .log-timestamp {
+        color: #64748b;
+        margin-right: 1rem;
+    }
+
+    .log-error {
+        color: #fca5a5;
+        background: rgba(239, 68, 68, 0.1);
+        border-left-color: #ef4444;
+    }
+
+    .log-warning {
+        color: #fcd34d;
+        background: rgba(245, 158, 11, 0.1);
+        border-left-color: #f59e0b;
+    }
+
+    .log-success {
+        color: #86efac;
+        background: rgba(16, 185, 129, 0.1);
+        border-left-color: #10b981;
+    }
+
+    .log-info {
+        color: #93c5fd;
+    }
+
+    .empty-logs {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #64748b;
+    }
+
+    .empty-logs-icon {
+        font-size: 4rem;
+        margin-bottom: 1.5rem;
+        opacity: 0.5;
+    }
+
+    .empty-logs h3 {
+        color: #94a3b8;
+        margin-bottom: 1rem;
+    }
+
+    .empty-logs p {
+        color: #64748b;
+        font-size: 1rem;
+    }
+
+    .logs-info-card {
+        background: var(--white);
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: var(--shadow-lg);
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+
+    .logs-info-icon {
+        font-size: 2rem;
+    }
+
+    .logs-info-text {
+        flex: 1;
+    }
+
+    .logs-info-text h3 {
+        margin-bottom: 0.5rem;
+        font-size: 1.1rem;
+    }
+
+    .logs-info-text p {
+        color: var(--gray);
+        margin: 0;
+        font-size: 0.95rem;
+    }
+
+    .terminal-footer {
+        background: #0f172a;
+        padding: 1rem 1.5rem;
+        border-top: 1px solid #334155;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.85rem;
+        color: #64748b;
+    }
+
+    .terminal-command {
+        font-family: 'Fira Code', monospace;
+        color: #94a3b8;
+    }
+
+    .terminal-command span {
+        color: #22d3ee;
+    }
+
+    @media (max-width: 768px) {
+        .logs-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .terminal-header {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .terminal-body {
+            font-size: 0.8rem;
+            padding: 1rem;
+        }
+    }
+</style>
+
+<div class="logs-container">
+    <div class="logs-header">
+        <div class="logs-title-section">
+            <h1>📋 Container Logs</h1>
+            <p class="logs-subtitle">Real-time logs for <strong>{{ bot.name }}</strong></p>
+        </div>
+        <div class="button-group">
+            <a href="/bots/{{ bot.id }}/logs" class="btn btn-secondary btn-small">🔄 Refresh</a>
+            <a href="/bots/{{ bot.id }}" class="btn btn-secondary">← Back to Bot</a>
+        </div>
+    </div>
+
+    <div class="terminal-card">
+        <div class="terminal-header">
+            <div class="terminal-controls">
+                <div class="terminal-dot dot-red"></div>
+                <div class="terminal-dot dot-yellow"></div>
+                <div class="terminal-dot dot-green"></div>
+                <span class="terminal-title">🐳 docker logs bot_{{ bot.id }}</span>
+            </div>
+            <div class="terminal-status">
+                <div class="status-indicator"></div>
+                <span>Live Container Logs</span>
+            </div>
+        </div>
+
+        <div class="terminal-body" id="logContent">
+            {% if logs %}
+                <pre style="margin: 0; background: transparent; padding: 0; border: none; box-shadow: none;">{{ logs }}</pre>
+            {% else %}
+                <div class="empty-logs">
+                    <div class="empty-logs-icon">📭</div>
+                    <h3>No Logs Available</h3>
+                    <p>The bot container might not be running, or no logs have been generated yet.</p>
+                    <p style="margin-top: 1rem;">Start the bot to see logs appear here.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="terminal-footer">
+            <div class="terminal-command">
+                <span>$</span> docker logs --tail=200 bot_{{ bot.id }}
+            </div>
+            <div>
+                Last 200 lines
+            </div>
+        </div>
+    </div>
+
+    <div class="logs-info-card">
+        <div class="logs-info-icon">💡</div>
+        <div class="logs-info-text">
+            <h3>Viewing Tips</h3>
+            <p>
+                Logs show the last 200 lines from your bot container. Click "🔄 Refresh" to fetch the latest logs.
+                Use logs to debug issues and monitor your bot's activity in real-time.
+            </p>
+        </div>
     </div>
 </div>
 
-<div class="card">
-    <h2>Container Logs (Last 200 lines)</h2>
-    {% if logs %}
-    <pre>{{ logs }}</pre>
-    {% else %}
-    <p style="color: #666; padding: 2rem; text-align: center;">
-        No logs available. The bot container might not be running.
-    </p>
-    {% endif %}
-</div>
+<script>
+    // Auto-scroll to bottom on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const logContent = document.getElementById('logContent');
+        if (logContent) {
+            logContent.scrollTop = logContent.scrollHeight;
+        }
+    });
 
-<div class="card" style="background-color: #f8f9fa;">
-    <p style="margin: 0; color: #666;">
-        💡 <strong>Tip:</strong> Click "🔄 Refresh" to fetch the latest logs. Logs are limited to the last 200 lines for performance.
-    </p>
-</div>
+    // Syntax highlighting for common log patterns
+    function highlightLogs() {
+        const logContent = document.getElementById('logContent');
+        if (!logContent) return;
+
+        const text = logContent.textContent;
+        if (!text) return;
+
+        const lines = text.split('\n');
+        let html = '';
+
+        lines.forEach(line => {
+            let cssClass = 'log-line';
+
+            // Detect log levels
+            if (/error|fail|exception|fatal/i.test(line)) {
+                cssClass += ' log-error';
+            } else if (/warn|warning|deprecated/i.test(line)) {
+                cssClass += ' log-warning';
+            } else if (/success|complete|done|started/i.test(line)) {
+                cssClass += ' log-success';
+            } else if (/info|debug/i.test(line)) {
+                cssClass += ' log-info';
+            }
+
+            // Extract timestamp if present
+            const timestampMatch = line.match(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+Z|\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\])/);
+            if (timestampMatch) {
+                const timestamp = timestampMatch[1];
+                const rest = line.substring(timestamp.length).trim();
+                html += `<div class="${cssClass}"><span class="log-timestamp">${timestamp}</span>${rest}</div>`;
+            } else {
+                html += `<div class="${cssClass}">${line}</div>`;
+            }
+        });
+
+        logContent.innerHTML = html;
+
+        // Scroll to bottom after highlighting
+        logContent.scrollTop = logContent.scrollHeight;
+    }
+
+    // Apply highlighting after page load
+    if (document.getElementById('logContent') && document.getElementById('logContent').querySelector('pre')) {
+        highlightLogs();
+    }
+</script>
 
 {% endblock %}

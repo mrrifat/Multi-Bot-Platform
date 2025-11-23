@@ -10,7 +10,7 @@ services:
       - "8000:8000"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - /srv/bots:/srv/bots
+      - ./bots-data:/srv/bots
       - ./data:/app/data
     environment:
       - DATABASE_URL=sqlite:///./data/bot_platform.db
