@@ -33,7 +33,7 @@ This platform allows you to:
 
 1. **Clone this repository**:
    ```bash
-   git clone <your-repo-url>
+   git clone [<your-repo-url>](https://github.com/mrrifat/Multi-Bot-Platform.git)
    cd VPS-Manager
    ```
 
