@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Bots - Multi-Bot Platform{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>My Bots</h1>
+    <a href="/bots/new" class="btn btn-success">+ Create New Bot</a>
+</div>
+
+{% if bots_data %}
+<div class="card">
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Runtime</th>
+                <th>Status</th>
+                <th>Last Deployment</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in bots_data %}
+            <tr>
+                <td><strong>{{ item.bot.name }}</strong></td>
+                <td>{{ item.bot.runtime }}</td>
+                <td>
+                    {% if 'Running' in item.status %}
+                    <span class="status-badge status-running">{{ item.status }}</span>
+                    {% else %}
+                    <span class="status-badge status-stopped">{{ item.status }}</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if item.last_deployment %}
+                    <span style="{% if item.last_deployment.status == 'success' %}color: #27ae60{% elif item.last_deployment.status == 'failed' %}color: #e74c3c{% else %}color: #95a5a6{% endif %}">
+                        {{ item.last_deployment.status }}
+                    </span> - {{ item.last_deployment.created_at.strftime('%Y-%m-%d %H:%M') }}
+                    {% else %}
+                    <span style="color: #95a5a6;">Never deployed</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="/bots/{{ item.bot.id }}" class="btn btn-small">View Details</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="card">
+    <p style="text-align: center; color: #666; padding: 2rem 0;">
+        No bots yet. Create your first bot to get started!
+    </p>
+</div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Logs - {{ bot.name }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Logs: {{ bot.name }}</h1>
+    <div class="button-group">
+        <a href="/bots/{{ bot.id }}/logs" class="btn btn-secondary">🔄 Refresh</a>
+        <a href="/bots/{{ bot.id }}" class="btn btn-secondary">← Back to Bot</a>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Container Logs (Last 200 lines)</h2>
+    {% if logs %}
+    <pre>{{ logs }}</pre>
+    {% else %}
+    <p style="color: #666; padding: 2rem; text-align: center;">
+        No logs available. The bot container might not be running.
+    </p>
+    {% endif %}
+</div>
+
+<div class="card" style="background-color: #f8f9fa;">
+    <p style="margin: 0; color: #666;">
+        💡 <strong>Tip:</strong> Click "🔄 Refresh" to fetch the latest logs. Logs are limited to the last 200 lines for performance.
+    </p>
+</div>
+
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Code - {{ bot.name }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Upload Code for {{ bot.name }}</h1>
+    <a href="/bots/{{ bot.id }}" class="btn btn-secondary">← Back to Bot</a>
+</div>
+
+<div class="card">
+    <h2>📦 Upload ZIP File</h2>
+    <p style="color: #666; margin-bottom: 1.5rem;">
+        Upload a ZIP file containing your bot's source code. The ZIP should include all necessary files including bot.py and requirements.txt (if needed).
+    </p>
+
+    <form method="post" action="/bots/{{ bot.id }}/upload" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="file">Select ZIP File *</label>
+            <input type="file" id="file" name="file" accept=".zip" required>
+        </div>
+
+        <div class="button-group">
+            <button type="submit" class="btn btn-success">Upload & Deploy</button>
+            <a href="/bots/{{ bot.id }}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<div class="card" style="background-color: #f8f9fa;">
+    <h3>ℹ️ What happens after upload?</h3>
+    <ol style="margin-left: 1.5rem; line-height: 1.8;">
+        <li>Your ZIP file will be extracted to: <code>{{ bot.code_path }}</code></li>
+        <li>A Docker image will be built for your bot</li>
+        <li>The bot container will be restarted with the new code</li>
+        <li>You can check deployment status on the bot detail page</li>
+    </ol>
+</div>
+
+<div class="card" style="background-color: #fff3cd; border: 1px solid #ffc107;">
+    <h3>⚠️ Requirements</h3>
+    <p style="margin-bottom: 0.5rem;">Your ZIP file should contain:</p>
+    <ul style="margin-left: 1.5rem; line-height: 1.8;">
+        <li><strong>bot.py</strong> - Your main bot script (or the file specified in start_command)</li>
+        <li><strong>requirements.txt</strong> - Python dependencies (optional, but recommended)</li>
+        <li>Any other files your bot needs</li>
+    </ul>
+    <p style="margin-top: 1rem; color: #856404;">
+        <strong>Note:</strong> The existing code will be completely replaced with the contents of your ZIP file.
+    </p>
+</div>
+
+{% endblock %}

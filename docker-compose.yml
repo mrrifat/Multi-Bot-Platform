@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  bot-platform-api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: bot-platform-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /srv/bots:/srv/bots
+      - ./data:/app/data
+    environment:
+      - DATABASE_URL=sqlite:///./data/bot_platform.db
+      - SECRET_KEY=change-this-to-a-random-secret-key-in-production
+    restart: unless-stopped
+    networks:
+      - bot-platform-network
+
+networks:
+  bot-platform-network:
+    driver: bridge

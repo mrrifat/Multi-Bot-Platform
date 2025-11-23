@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}{{ bot.name }} - Multi-Bot Platform{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>{{ bot.name }}</h1>
+    <a href="/bots" class="btn btn-secondary">← Back to Bots</a>
+</div>
+
+<!-- Bot Status and Controls -->
+<div class="card">
+    <h2>Status & Controls</h2>
+    <p>
+        <strong>Status:</strong>
+        {% if 'Running' in status %}
+        <span class="status-badge status-running">{{ status }}</span>
+        {% else %}
+        <span class="status-badge status-stopped">{{ status }}</span>
+        {% endif %}
+    </p>
+
+    <div class="button-group" style="margin-top: 1rem;">
+        {% if 'Running' in status %}
+        <form method="post" action="/bots/{{ bot.id }}/stop" style="display: inline;">
+            <button type="submit" class="btn btn-danger">⏹ Stop</button>
+        </form>
+        <form method="post" action="/bots/{{ bot.id }}/restart" style="display: inline;">
+            <button type="submit" class="btn btn-warning">🔄 Restart</button>
+        </form>
+        {% else %}
+        <form method="post" action="/bots/{{ bot.id }}/start" style="display: inline;">
+            <button type="submit" class="btn btn-success">▶️ Start</button>
+        </form>
+        {% endif %}
+
+        <a href="/bots/{{ bot.id }}/logs" class="btn btn-secondary">📋 View Logs</a>
+
+        {% if bot.repo_url %}
+        <form method="post" action="/bots/{{ bot.id }}/deploy" style="display: inline;">
+            <button type="submit" class="btn">🚀 Deploy from Git</button>
+        </form>
+        {% endif %}
+
+        <a href="/bots/{{ bot.id }}/upload" class="btn">📦 Upload Code (ZIP)</a>
+    </div>
+</div>
+
+<!-- Bot Configuration -->
+<div class="card">
+    <h2>Configuration</h2>
+    <table>
+        <tr>
+            <th style="width: 200px;">Runtime</th>
+            <td>{{ bot.runtime }}</td>
+        </tr>
+        <tr>
+            <th>Start Command</th>
+            <td><code>{{ bot.start_command }}</code></td>
+        </tr>
+        <tr>
+            <th>Code Path</th>
+            <td><code>{{ bot.code_path }}</code></td>
+        </tr>
+        {% if bot.repo_url %}
+        <tr>
+            <th>Repository</th>
+            <td><a href="{{ bot.repo_url }}" target="_blank" style="color: #3498db;">{{ bot.repo_url }}</a></td>
+        </tr>
+        {% endif %}
+        <tr>
+            <th>Created</th>
+            <td>{{ bot.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+        </tr>
+        <tr>
+            <th>Last Updated</th>
+            <td>{{ bot.updated_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+        </tr>
+    </table>
+</div>
+
+<!-- Environment Variables -->
+<div class="card">
+    <h2>Environment Variables</h2>
+    <form method="post" action="/bots/{{ bot.id }}/envvars">
+        <table>
+            <thead>
+                <tr>
+                    <th>Key</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody id="envvar-table">
+                {% for env_var in bot.env_vars %}
+                <tr>
+                    <td>
+                        <input type="text" name="env_key_{{ loop.index0 }}" value="{{ env_var.key }}" placeholder="KEY" required>
+                    </td>
+                    <td>
+                        <input type="text" name="env_value_{{ loop.index0 }}" value="{{ env_var.value }}" placeholder="value" required>
+                    </td>
+                </tr>
+                {% endfor %}
+                <!-- Empty rows for adding new vars -->
+                <tr>
+                    <td>
+                        <input type="text" name="env_key_{{ bot.env_vars|length }}" placeholder="KEY">
+                    </td>
+                    <td>
+                        <input type="text" name="env_value_{{ bot.env_vars|length }}" placeholder="value">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="text" name="env_key_{{ bot.env_vars|length + 1 }}" placeholder="KEY">
+                    </td>
+                    <td>
+                        <input type="text" name="env_value_{{ bot.env_vars|length + 1 }}" placeholder="value">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="text" name="env_key_{{ bot.env_vars|length + 2 }}" placeholder="KEY">
+                    </td>
+                    <td>
+                        <input type="text" name="env_value_{{ bot.env_vars|length + 2 }}" placeholder="value">
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <button type="submit" class="btn btn-success" style="margin-top: 1rem;">💾 Save Environment Variables</button>
+        <p style="margin-top: 0.5rem; color: #666; font-size: 0.9rem;">
+            ⚠️ After updating env vars, restart the bot for changes to take effect.
+        </p>
+    </form>
+</div>
+
+<!-- Deployment History -->
+<div class="card">
+    <h2>Deployment History</h2>
+    {% if deployments %}
+    <table>
+        <thead>
+            <tr>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Details</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for deployment in deployments %}
+            <tr>
+                <td>
+                    <span style="
+                        {% if deployment.status == 'success' %}color: #27ae60;{% elif deployment.status == 'failed' %}color: #e74c3c;{% else %}color: #95a5a6;{% endif %}
+                        font-weight: 600;
+                    ">
+                        {{ deployment.status.upper() }}
+                    </span>
+                </td>
+                <td>{{ deployment.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                <td>
+                    {% if deployment.log %}
+                    <details>
+                        <summary style="cursor: pointer; color: #3498db;">View Log</summary>
+                        <pre style="margin-top: 0.5rem; font-size: 0.8rem;">{{ deployment.log }}</pre>
+                    </details>
+                    {% else %}
+                    -
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color: #666;">No deployments yet.</p>
+    {% endif %}
+</div>
+
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Create New Bot - Multi-Bot Platform{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Create New Bot</h1>
+    <a href="/bots" class="btn btn-secondary">← Back to Bots</a>
+</div>
+
+{% if error %}
+<div class="alert alert-error">{{ error }}</div>
+{% endif %}
+
+<div class="card">
+    <form method="post" action="/bots">
+        <div class="form-group">
+            <label for="name">Bot Name *</label>
+            <input type="text" id="name" name="name" required placeholder="my-telegram-bot">
+            <small style="color: #666;">Use lowercase letters, numbers, and hyphens only</small>
+        </div>
+
+        <div class="form-group">
+            <label for="runtime">Runtime *</label>
+            <select id="runtime" name="runtime" required>
+                <option value="python">Python</option>
+            </select>
+            <small style="color: #666;">Currently only Python is supported</small>
+        </div>
+
+        <div class="form-group">
+            <label for="start_command">Start Command *</label>
+            <input type="text" id="start_command" name="start_command" value="python bot.py" required>
+            <small style="color: #666;">Command to run your bot (e.g., python bot.py or python main.py)</small>
+        </div>
+
+        <div class="form-group">
+            <label for="repo_url">Git Repository URL (Optional)</label>
+            <input type="url" id="repo_url" name="repo_url" placeholder="https://github.com/username/bot-repo.git">
+            <small style="color: #666;">Leave empty if you plan to upload code manually via ZIP</small>
+        </div>
+
+        <div class="button-group">
+            <button type="submit" class="btn btn-success">Create Bot</button>
+            <a href="/bots" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<div class="card" style="background-color: #f8f9fa;">
+    <h3>ℹ️ Getting Started</h3>
+    <p style="margin-bottom: 0.5rem;">After creating your bot:</p>
+    <ol style="margin-left: 1.5rem; line-height: 1.8;">
+        <li>Configure environment variables (e.g., BOT_TOKEN)</li>
+        <li>Deploy your code (via Git or ZIP upload)</li>
+        <li>Start the bot container</li>
+        <li>Monitor logs to verify it's working</li>
+    </ol>
+</div>
+
+{% endblock %}
