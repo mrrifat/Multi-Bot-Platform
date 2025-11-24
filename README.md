@@ -44,18 +44,12 @@ This platform allows you to:
    # Or edit docker-compose.yml to set a permanent SECRET_KEY
    ```
 
-3. **Create required directories**:
-   ```bash
-   sudo mkdir -p /srv/bots
-   sudo chown -R $USER:$USER /srv/bots
-   ```
-
-4. **Build and start the platform**:
+3. **Build and start the platform**:
    ```bash
    docker-compose up -d --build
    ```
 
-5. **Access the dashboard**:
+4. **Access the dashboard**:
    - Open your browser to: `http://your-vps-ip:8000`
    - Default credentials:
      - Email: `admin@example.com`
@@ -224,6 +218,8 @@ VPS-Manager/
 ├── docker-compose.yml          # Main orchestration file
 ├── data/                        # SQLite database storage
 │   └── bot_platform.db         # Created automatically
+├── bots-data/                   # Bot code storage (created automatically)
+│   └── <bot-name>/             # Each bot has its own directory
 ├── backend/
 │   ├── Dockerfile              # Platform API container
 │   ├── main.py                 # FastAPI application
@@ -243,9 +239,7 @@ VPS-Manager/
 │   │       ├── detail.html
 │   │       ├── upload.html
 │   │       └── logs.html
-│   └── static/                 # Static files (empty for now)
-└── /srv/bots/                  # Bot code storage (on host)
-    └── <bot-name>/             # Each bot has its own directory
+│   └── static/                 # Static files (CSS/JS if needed)
 ```
 
 ## 🔒 Security Considerations
@@ -264,7 +258,7 @@ Security measures to implement:
    - Set up SSL certificates (Let's Encrypt)
    - Proxy `https://yourdomain.com` to `http://localhost:8000`
 
-5. **Regular backups** of `/data/bot_platform.db` and `/srv/bots/`
+5. **Regular backups** of `./data/bot_platform.db` and `./bots-data/`
 
 ## 🛠️ Troubleshooting
 
@@ -292,11 +286,12 @@ docker-compose down
 docker-compose up -d --build
 ```
 
-### Permission issues with /srv/bots
+### Permission issues with bot storage
 
 ```bash
-sudo chown -R $USER:$USER /srv/bots
-sudo chmod -R 755 /srv/bots
+# Ensure correct ownership of bot storage directory
+sudo chown -R $USER:$USER ./bots-data
+sudo chmod -R 755 ./bots-data
 ```
 
 ### Docker socket permission denied

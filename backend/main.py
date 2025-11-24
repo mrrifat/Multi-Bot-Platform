@@ -44,6 +44,10 @@ SECRET_KEY = os.getenv("SECRET_KEY", "change-this-to-a-random-secret-key-in-prod
 app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY)
 
 # Static files and templates
+# Ensure static directory exists
+static_dir = Path("static")
+static_dir.mkdir(exist_ok=True)
+
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
