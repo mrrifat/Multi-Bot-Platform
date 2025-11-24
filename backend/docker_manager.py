@@ -8,9 +8,16 @@ from docker.errors import DockerException, NotFound, APIError
 
 # Initialize Docker client
 try:
-    docker_client = docker.from_env()
+    # Try to connect to Docker socket directly
+    docker_client = docker.DockerClient(base_url='unix://var/run/docker.sock')
+    # Test connection
+    docker_client.ping()
+    print("✓ Successfully connected to Docker daemon")
 except DockerException as e:
     print(f"Warning: Could not connect to Docker: {e}")
+    docker_client = None
+except Exception as e:
+    print(f"Warning: Unexpected error connecting to Docker: {e}")
     docker_client = None
 
 

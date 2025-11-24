@@ -43,6 +43,17 @@ app = FastAPI(title="Multi-Bot Platform")
 SECRET_KEY = os.getenv("SECRET_KEY", "change-this-to-a-random-secret-key-in-production")
 app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY)
 
+# Exception handler for 401 - redirect to login for browser requests
+@app.exception_handler(401)
+async def unauthorized_exception_handler(request: Request, exc: HTTPException):
+    """Redirect to login page for 401 errors on browser requests."""
+    # Check if this is a browser request (HTML) or API request (JSON)
+    accept_header = request.headers.get("accept", "")
+    if "text/html" in accept_header:
+        return RedirectResponse(url="/login", status_code=303)
+    # For API requests, return JSON error
+    return {"detail": exc.detail}
+
 # Static files and templates
 # Ensure static directory exists
 static_dir = Path("static")
